@@ -216,11 +216,25 @@ void Tensor::init_random(float mean, float std){
 }
 
 void Tensor::init(int r, int c, int d, float v){
-
+    if(data){
+        for(int i = 0; i < r; i++)
+            for(int j = 0; j < c; j++)
+                for(int k = 0; k < d; k++)
+                    data[i][j][k] = v;
+    }else{
+        throw(tensor_not_initialized());
+    }
 }
 
 void Tensor::clamp(float low, float high){
-
+    for(int i = 0; i < r; i++){
+        for(int j = 0; j < c; j++){
+            for(int k = 0; k < d; k++){
+                if(data[i][j][k] < low) data[i][j][k] = low;
+                if(data[i][j][k] > high) data[i][j][k] = high;
+            }
+        }
+    }
 }
 
 void Tensor::rescale(float new_max){
@@ -246,23 +260,39 @@ Tensor Tensor::convolve(const Tensor &f){
 /* UTILITY */
 
 int Tensor::rows(){
-
+    return r;
 }
 
 int Tensor::cols(){
-    
+    return c;
 }
 
 int Tensor::depth(){
-    
+    return d;
 }
 
 float Tensor::getMin(int k){
+    float res = data[0][0][k];
 
+    for(int i = 0; i < r; i++){
+        for(int j = 1; j < c; j++){
+            if(data[i][j][k] < res) res = data[i][j][k];
+        }
+    }
+
+    return res;
 }
 
 float Tensor::getMax(int k){
+    float res = data[0][0][k];
 
+    for(int i = 0; i < r; i++){
+        for(int j = 1; j < c; j++){
+            if(data[i][j][k] > res) res = data[i][j][k];
+        }
+    }
+
+    return res;
 }
 
 void Tensor::showSize(){
