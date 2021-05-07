@@ -13,6 +13,25 @@
 
 using namespace std;
 
+Tensor::Tensor(int r, int c, int d, float v) {
+    this->r = r;
+    this->c = c;
+    this->d = d;
+
+    data = new float**[r];
+
+    for(int i = 0; i < r; i++){
+        data[i] = new float*[c];
+        for(int j = 0; j < c; j++){
+            data[i][j] = new float[d];
+        }
+    }
+
+    for(int i = 0; i < r; i++)
+        for(int j = 0; j < c; j++)
+            for(int k = 0; k < d; k++)
+                data[i][j][k] = v;
+}
 
 /**
  * Random Initialization
