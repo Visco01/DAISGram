@@ -45,9 +45,13 @@ Tensor::Tensor(int r, int c, int d, float v) {
 }
 
 Tensor::~Tensor(){
-    for(int i = 0; i < r; i++)
+    for(int i = 0; i < r; i++){
         for(int j = 0; j < c; j++)
-            delete data[i][j];
+            delete[] data[i][j];
+        delete[] data[i];
+    }
+
+    delete[] data;
 }
 
 void Tensor::init_progressive(){
@@ -296,19 +300,50 @@ float Tensor::getMax(int k){
 }
 
 void Tensor::showSize(){
-    
+    cout << r << " x " << c << " x " << d << endl;
 }
 
 /* IOSTREAM */
 
 ostream& operator<<(ostream& stream, const Tensor & obj){
-
+    for(int k = 0; k < obj.d; k++){
+        for(int i = 0; i < obj.r; i++){
+            stream << "[ ";
+            for(int j = 0; j < obj.c; j++){
+                stream << obj.data[i][j][k] << " ";
+            }
+            stream << "]\n";
+        }
+        stream << "\n";
+    }
+    return stream;
 }
 
 void Tensor::read_file(string filename){
+    ifstream f{filename};
+    if(!f) throw(unable_to_read_file());
 
+    string line;
+    f >> r >> c >> d;
+    
+    allocate_memory();
+
+    for(int k = 0; k < d; k++)
+        for(int i = 0; i < r; i++)
+            for(int j = 0; j < c; j++)
+                f >> data[i][j][k];
+
+    f.close();
 }
 
 void Tensor::write_file(string filename){
+    ofstream f{filename};
+    f << r << "\n" << c << "\n" << d << "\n";
 
+    for(int k = 0; k < d; k++)
+        for(int i = 0; i < r; i++)
+            for(int j = 0; j < c; j++)
+                f << data[i][j][k] << "\n";
+    
+    f.close();
 }
