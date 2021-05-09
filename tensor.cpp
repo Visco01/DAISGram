@@ -242,19 +242,100 @@ void Tensor::clamp(float low, float high){
 }
 
 void Tensor::rescale(float new_max){
-
+    for (int k = 0; k < d; k++) {
+        int Min = getMin(k), Max = getMax(k);
+        for (int i = 0; i < r; i++) {
+            for (int j = 0; j < c; j++) {
+                data[i][j][k] = ((data[i][j][k] - Min) / (Max - Min)) * new_max;
+            }
+        }
+    }
 }
 
 Tensor Tensor::padding(int pad_h, int pad_w){
+    /*Tensor res{r + pad_h * 2, d + pad_w * 2, d};
 
+    for(int i = pad_h; i < r - pad_h; i++)
+        for(int j = pad_w; j < d - pad_w; j++)
+            for(int k = 0; k < d; k++)
+                cout << "i " << i << " j " << j << " k " << k << endl;
+    
+    return res;*/
 }
 
 Tensor Tensor::subset(unsigned int row_start, unsigned int row_end, unsigned int col_start, unsigned int col_end, unsigned int depth_start, unsigned int depth_end){
+    int new_row = (int) row_end - row_start;
+    int new_col = (int) col_end - col_start;
+    int new_depth = (int) depth_end - depth_start;
+    
+    Tensor res{new_row, new_col, new_depth};
 
+    for(int i = row_start; i < row_end; i++)
+        for(int j = col_start; j < col_end; j++)
+            for(int k = depth_start; k < depth_end; k++)
+                res(i - row_start, j - col_start, k - depth_start) = data[i][j][k];
+            
+    return res;
 }
 
 Tensor Tensor::concat(const Tensor &rhs, int axis){
+    Tensor res{};
+    if(axis == 0){
+        if(c != rhs.c || d != rhs.d) throw(concat_wrong_dimension());
+        Tensor temp{r + rhs.r, c, d};
 
+        for(int i = 0; i < temp.rows(); i++){
+            for(int j = 0; j < temp.cols(); j++){
+                for(int k = 0; k < temp.depth(); k++){
+                    if(i < rows()){
+                        temp(i, j, k) = data[i][j][k];
+                    }else{
+                        temp(i, j, k) = rhs(i - rows(), j, k);
+                    }
+                }
+            }
+        }
+
+        res = temp;
+    }else if(axis == 1){
+        if(r != rhs.r || d != rhs.d) throw(concat_wrong_dimension());
+        Tensor temp{r , c + rhs.c, d};
+
+        for(int i = 0; i < temp.rows(); i++){
+            for(int j = 0; j < temp.cols(); j++){
+                for(int k = 0; k < temp.depth(); k++){
+                    if(j < cols()){
+                        temp(i, j, k) = data[i][j][k];
+                    }else{
+                        temp(i, j, k) = rhs(i, j - cols(), k);
+                    }
+                }
+            }
+        }
+
+        res = temp;
+    }else if(axis == 2){
+        if(r != rhs.r || c != rhs.c) throw(concat_wrong_dimension());
+        Tensor temp{r , c, d + rhs.d};
+
+        for(int i = 0; i < temp.rows(); i++){
+            for(int j = 0; j < temp.cols(); j++){
+                for(int k = 0; k < temp.depth(); k++){
+                    if(k < depth()){
+                        temp(i, j, k) = data[i][j][k];
+                    }else{
+                        temp(i, j, k) = rhs(i, j, k - depth());
+                    }
+                }
+            }
+        }
+
+        res = temp;
+    }else{
+        throw(concat_wrong_dimension());
+    }
+
+    return res;
 }
 
 Tensor Tensor::convolve(const Tensor &f){
