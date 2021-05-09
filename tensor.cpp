@@ -253,14 +253,17 @@ void Tensor::rescale(float new_max){
 }
 
 Tensor Tensor::padding(int pad_h, int pad_w){
-    /*Tensor res{r + pad_h * 2, d + pad_w * 2, d};
-
-    for(int i = pad_h; i < r - pad_h; i++)
-        for(int j = pad_w; j < d - pad_w; j++)
-            for(int k = 0; k < d; k++)
-                cout << "i " << i << " j " << j << " k " << k << endl;
+    Tensor res{r + pad_h * 2, c + pad_w * 2, d};
     
-    return res;*/
+    for(int i = pad_h; i < res.r - pad_h; i++){
+        for(int j = pad_w; j < res.c - pad_w; j++){
+            for(int k = 0; k < res.d; k++){
+                res(i, j, k) = data[i - pad_h][j - pad_w][k];
+            }
+        }
+    }
+        
+    return res;
 }
 
 Tensor Tensor::subset(unsigned int row_start, unsigned int row_end, unsigned int col_start, unsigned int col_end, unsigned int depth_start, unsigned int depth_end){
