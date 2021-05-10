@@ -199,7 +199,25 @@ DAISGram DAISGram::warhol(){
  * @return returns a new DAISGram containing the modified object
  */
 DAISGram DAISGram::sharpen(){
+    Tensor filter{3, 3, 3};
+    
+    for(int i = 0; i < 3; i++){
+        for(int j = 0; j < 3; j++){
+            for(int k = 0; k < 3; k++){
+                if(i == 1 && j == 1){
+                    filter(i, j, k) = 5;
+                }else if(i % 2 != 0 || j % 2 != 0){
+                    filter(i, j, k) = -1;
+                }else{
+                    filter(i, j, k) = 0;
+                }
+            }
+        }
+    }
 
+    DAISGram res = *this;
+    res.data = res.data.convolve(filter);
+    return res;
 }
 
 /**
@@ -218,7 +236,30 @@ DAISGram DAISGram::sharpen(){
  * @return returns a new DAISGram containing the modified object
  */
 DAISGram DAISGram::emboss(){
+    Tensor filter{3, 3, 3};
 
+    int z = -2;
+    for(int i = 0; i < 3; i++){
+        for(int j = 0; j < 3; j++){
+            int temp = z;
+            for(int k = 0; k < 3; k++){
+                if(i == 1 && j == 1){
+                    filter(i, j, k) = 1;
+                }else{
+                    filter(i, j, k) = temp;
+                    temp++;
+                }
+            }
+        }
+        z++;
+    }
+
+    cout << filter;
+
+    DAISGram res = *this;
+    res.data = res.data.convolve(filter);
+    res.data.clamp(0, 255);
+    return res;
 }
 
 /**
@@ -238,7 +279,12 @@ DAISGram DAISGram::emboss(){
  * @return returns a new DAISGram containing the modified object
  */
 DAISGram DAISGram::smooth(int h){
+    float c = 1.0f / (h * h);
+    Tensor filter{h, h, 3, c};
 
+    DAISGram res = *this;
+    res.data = res.data.convolve(filter);
+    return res;
 }
 
 /**
