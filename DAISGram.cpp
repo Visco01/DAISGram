@@ -260,6 +260,27 @@ DAISGram DAISGram::smooth(int h){
  * @return returns a new DAISGram containing the modified object
  */
 DAISGram DAISGram::edge(){
+    Tensor filter{3, 3, 3};
+    
+    for(int i = 0; i < 3; i++){
+        for(int j = 0; j < 3; j++){
+            for(int k = 0; k < 3; k++){
+                if(i == 1 && j == 1){
+                    filter(i, j, k) = 8;
+                }else{
+                    filter(i, j, k) = -1;
+                }
+            }
+        }
+    }
+    
+    DAISGram res = *this;
+
+    res = res.grayscale();
+    res.data = res.data.convolve(filter);
+    res.data.clamp(0, 255);
+
+    return res;
 
 }
 
@@ -333,20 +354,5 @@ DAISGram greenscreen(DAISGram & bkg, int rgb[], float threshold[]){
  * @return returns a new DAISGram containing the equalized image.
  */
 DAISGram equalize(){
-
-}
-
-
-/**
- * Generate Random Image
- *
- * Generate a random image from nois
- *
- * @param h height of the image
- * @param w width of the image
- * @param d number of channels
- * @return returns a new DAISGram containing the generated image.
- */
-void generate_random(int h, int w, int d){
 
 }

@@ -342,7 +342,32 @@ Tensor Tensor::concat(const Tensor &rhs, int axis){
 }
 
 Tensor Tensor::convolve(const Tensor &f){
+    Tensor f1 = f;
+    if((f1.rows() != f1.cols()) || (f1.rows() % 2 == 0) || (f1.cols() % 2 == 0) || f1.depth() != depth()) throw(dimension_mismatch());
+    Tensor res = *this;
+    
+    int pad_h = (f1.rows() - 1) / 2;
+    int pad_w = (f1.cols() - 1) / 2;
 
+    Tensor temp = res.padding(pad_h, pad_w);;
+
+    for(int k = 0; k < temp.depth(); k++){
+        for(int i = 0; i <= temp.rows() - f1.rows(); i++){
+            for(int j = 0; j <= temp.cols() - f1.cols(); j++){
+                Tensor supp = temp.subset(i, i + f1.rows(), j, j + f1.cols(), k, k + 1);
+                float sum = 0;
+                for(int a = 0; a < supp.rows(); a++){
+                    for(int b = 0; b < supp.cols(); b++){
+                        sum += (supp(a, b, 0) * f1(a, b, k));
+                    }
+                }
+
+                res(i, j, k) = sum;
+            }
+        }
+    }
+
+    return res;
 }
 
 /* UTILITY */
