@@ -238,23 +238,21 @@ DAISGram DAISGram::sharpen(){
 DAISGram DAISGram::emboss(){
     Tensor filter{3, 3, 3};
 
-    int z = -2;
+    int z = -3;
     for(int i = 0; i < 3; i++){
+        z++;
+        int temp = z-1;
         for(int j = 0; j < 3; j++){
-            int temp = z;
+            temp++;
             for(int k = 0; k < 3; k++){
                 if(i == 1 && j == 1){
                     filter(i, j, k) = 1;
                 }else{
                     filter(i, j, k) = temp;
-                    temp++;
                 }
             }
         }
-        z++;
     }
-
-    cout << filter;
 
     DAISGram res = *this;
     res.data = res.data.convolve(filter);
@@ -386,8 +384,29 @@ void DAISGram::generate_random(int h, int w, int d){
  * @param threshold[] The threshold to add/remove for each color (threshold[0] = RED, threshold[1]=GREEN, threshold[2]=BLUE)
  * @return returns a new DAISGram containing the result.
  */
-DAISGram greenscreen(DAISGram & bkg, int rgb[], float threshold[]){
+DAISGram DAISGram::greenscreen(DAISGram & bkg, int rgb[], float threshold[]){
+    if(data.rows() != bkg.data.rows() || data.cols() != bkg.data.cols() ||data.depth() != bkg.data.depth()) throw(dimension_mismatch());
+    DAISGram res = *this;
+    int counter = 0;
+    
+    for(int i = 0; i < res.getRows(); i++){
+        for(int j = 0; j < res.getCols(); j++){
+            for(int k = 0; k < res.getDepth(); k++){
+                if(res.data(i, j, k) >= (rgb[k] - threshold[k]) && res.data(i, j, k) <= (rgb[k] + threshold[k])){
+                    counter++;
+                }
+            }
 
+            if(counter == 3){
+                res.data(i, j, 0) = bkg.data(i, j, 0);
+                res.data(i, j, 1) = bkg.data(i, j, 1);
+                res.data(i, j, 2) = bkg.data(i, j, 2);
+            }
+            counter = 0;
+        }
+    }
+
+    return res;
 }
 
 /**
@@ -399,6 +418,96 @@ DAISGram greenscreen(DAISGram & bkg, int rgb[], float threshold[]){
  *
  * @return returns a new DAISGram containing the equalized image.
  */
-DAISGram equalize(){
+DAISGram DAISGram::equalize(){
+    /**
+     *
+     * L = numero dei possibili valori -> 256
+     * N  = numero di pixels -> rows() * cols()
+     * M*N = numero totale di pixels per ogni canale (quindi grandezza dell'immagine)
+     * cdf(v) = formula comultiva di un certo valore
+     * cdf(min) = il minor valore delle formule comulative calcolate
+     *
+     * cdf(v) = numero di occorrenze di un certo valore + cdf(v) del valore precedente (per il primo valore si somma 0)
+     *
+     */
 
+    DAISGram res = *this;
+    /**
+     * LIVELLO 0: VALORE
+     * LIVELLO 1: OCCORRENZE
+     * LIVELLO 2: CDF
+     */
+    Tensor occurrencies{16, 16, 3};
+    /**
+     * TO DO:
+     *
+     * 1) calcolare il numero di occorrenze per ogni valore dei pixels nel tensore @param occurrencies;
+     * 2) calcolare il rispettivo cdf nel tensore @param cdf
+     * 3) ricavare dal tensore @param cdf il minimo valore e salvarlo in @param cdf_min
+     * 4) applicare la formula presente nel link https://en.m.wikipedia.org/wiki/Histogram_equalization
+     * 5) ripetere per ogni canale
+     *
+     * LET'S GO
+     */
+    
+    int rows = res.getRows();
+    int cols = res.getCols();
+
+    int a = 0, b = 0;
+
+    for(int z = res.data.getMin(0); z < 256; z++){
+        occurrencies(a, b, 0) = z;
+        for(int i = 0; i < rows; i++){
+            for(int j = 0; j < cols; j++){
+                if(res.data(i, j, 0) == z){
+                    occurrencies(a, b, 1)++;
+                }
+            }
+        }
+        b++;
+        if(b == 16){
+            a++;
+            b = 0;
+        }
+    }
+
+    rows = occurrencies.rows();
+    cols = occurrencies.cols();
+
+    float cdf = 0.0f;
+    for(int i = 0; i < rows; i++){
+        for(int j = 0; j < cols; j++){
+            if(occurrencies(i, j, 1) != 0){
+                cdf += occurrencies(i, j, 1);
+                occurrencies(i, j, 2) = cdf;
+            }
+        }
+    }
+
+    float cdf_min = occurrencies(0, 0, 2);
+    int dimension = res.getRows() * res.getCols();
+    int L = 256;
+
+    rows = res.getRows();
+    cols = res.getCols();
+    int depth = res.getDepth();
+
+    a = 0;
+    b = 0;
+
+    for(int i = 0; i < rows; i++){
+        for(int j = 0; j < cols; j++){
+            for(int k = 0; k < depth; k++){
+                if(res.data(i, j, k) != 0){
+                    cdf = occurrencies.getCDF(res.data(i, j, k));
+
+                    if(cdf != 0){
+                        res.data(i, j, k) = (int) ( ((cdf - cdf_min) / (dimension - cdf_min)) * (L - 1) );
+                    }
+                }
+            }
+        }
+    }
+
+    return res;
 }

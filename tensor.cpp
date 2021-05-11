@@ -352,6 +352,7 @@ Tensor Tensor::convolve(const Tensor &f){
     Tensor temp = res.padding(pad_h, pad_w);;
 
     for(int k = 0; k < temp.depth(); k++){
+        
         for(int i = 0; i <= temp.rows() - f1.rows(); i++){
             for(int j = 0; j <= temp.cols() - f1.cols(); j++){
                 Tensor supp = temp.subset(i, i + f1.rows(), j, j + f1.cols(), k, k + 1);
@@ -455,4 +456,12 @@ void Tensor::write_file(string filename){
                 f << data[i][j][k] << "\n";
     
     f.close();
+}
+
+int Tensor::getCDF(int value){
+    for(int i = 0; i < rows(); i++){
+        for(int j = 0; j < cols(); j++){
+            if(data[i][j][0] == value) return data[i][j][2];
+        }
+    }
 }
