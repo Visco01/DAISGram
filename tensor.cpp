@@ -464,4 +464,6 @@ int Tensor::getCDF(int value){
             if(data[i][j][0] == value) return data[i][j][2];
         }
     }
+    
+    return 0;
 }
