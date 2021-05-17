@@ -81,7 +81,19 @@ Tensor::Tensor(const Tensor& that){
                 data[i][j][k] = that(i, j, k);
 }
 
-//OPERATORI
+bool Tensor::operator==(const Tensor& rhs) const{
+    if(r != rhs.r || c != rhs.c || d != rhs.d) throw(dimension_mismatch());
+
+    for(int i = 0; i < r; i++){
+        for(int j = 0; j < c; j++){
+            for(int k = 0; k < d; k++){
+                if(abs(data[i][j][k] - rhs(i, j, k)) > EPSILON) return false;
+            }
+        }
+    }
+
+    return true;
+}
 
 Tensor Tensor::operator-(const Tensor &rhs){
     if(r != rhs.r || c != rhs.c || d != rhs.d) throw(dimension_mismatch());
@@ -189,8 +201,6 @@ Tensor & Tensor::operator=(const Tensor &other){
     
     return *this;
 }
-
-//OPERAZIONI
 
 /**
  * Random Initialization
@@ -371,8 +381,6 @@ Tensor Tensor::convolve(const Tensor &f){
     return res;
 }
 
-/* UTILITY */
-
 int Tensor::rows(){
     return r;
 }
@@ -412,8 +420,6 @@ float Tensor::getMax(int k){
 void Tensor::showSize(){
     cout << r << " x " << c << " x " << d << endl;
 }
-
-/* IOSTREAM */
 
 ostream& operator<<(ostream& stream, const Tensor & obj){
     for(int k = 0; k < obj.d; k++){
@@ -464,6 +470,6 @@ int Tensor::getCDF(int value){
             if(data[i][j][0] == value) return data[i][j][2];
         }
     }
-    
+
     return 0;
 }

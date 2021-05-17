@@ -217,6 +217,7 @@ DAISGram DAISGram::sharpen(){
 
     DAISGram res = *this;
     res.data = res.data.convolve(filter);
+    //res.data.clamp(0, 255);
     return res;
 }
 
@@ -323,9 +324,7 @@ DAISGram DAISGram::edge(){
     res = res.grayscale();
     res.data = res.data.convolve(filter);
     res.data.clamp(0, 255);
-
     return res;
-
 }
 
 /**
@@ -419,24 +418,7 @@ DAISGram DAISGram::greenscreen(DAISGram & bkg, int rgb[], float threshold[]){
  * @return returns a new DAISGram containing the equalized image.
  */
 DAISGram DAISGram::equalize(){
-    /**
-     *
-     * L = numero dei possibili valori -> 256
-     * N  = numero di pixels -> rows() * cols()
-     * M*N = numero totale di pixels per ogni canale (quindi grandezza dell'immagine)
-     * cdf(v) = formula comultiva di un certo valore
-     * cdf(min) = il minor valore delle formule comulative calcolate
-     *
-     * cdf(v) = numero di occorrenze di un certo valore + cdf(v) del valore precedente (per il primo valore si somma 0)
-     *
-     */
-
     DAISGram res = *this;
-    /**
-     * LIVELLO 0: VALORE
-     * LIVELLO 1: OCCORRENZE
-     * LIVELLO 2: CDF
-     */
     Tensor occurrencies{16, 16, 3};
     /**
      * TO DO:
