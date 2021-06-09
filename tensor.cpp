@@ -18,7 +18,7 @@ Tensor::Tensor(){
     r = 0;
     c = 0;
     d = 0;
-}
+} 
 
 void Tensor::allocate_memory(){
     data = new float**[r];
