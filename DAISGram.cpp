@@ -215,8 +215,8 @@ DAISGram DAISGram::sharpen(){
         }
     }
 
-    DAISGram res = *this;
-    res.data = res.data.convolve(filter);
+    DAISGram res{};
+    res.data = data.convolve(filter);
     res.data.clamp(0, 255);
     return res;
 }
@@ -255,8 +255,9 @@ DAISGram DAISGram::emboss(){
         }
     }
 
-    DAISGram res = *this;
-    res.data = res.data.convolve(filter);
+    DAISGram temp = *this;
+    DAISGram res;
+    res.data = temp.data.convolve(filter);
     res.data.clamp(0, 255);
     return res;
 }
@@ -281,8 +282,9 @@ DAISGram DAISGram::smooth(int h){
     float c = 1.0f / (h * h);
     Tensor filter{h, h, 3, c};
 
-    DAISGram res = *this;
-    res.data = res.data.convolve(filter);
+    DAISGram temp = *this;
+    DAISGram res;
+    res.data = temp.data.convolve(filter);
     return res;
 }
 
@@ -319,11 +321,10 @@ DAISGram DAISGram::edge(){
         }
     }
     
-    DAISGram res = *this;
-
-    res = res.grayscale();
-    res.data = res.data.convolve(filter);
-    res.data.clamp(0, 255);
+    DAISGram temp = *this;
+    temp = temp.grayscale();
+    DAISGram res;
+    res.data = temp.data.convolve(filter);
     return res;
 }
 
@@ -420,18 +421,6 @@ DAISGram DAISGram::greenscreen(DAISGram & bkg, int rgb[], float threshold[]){
 DAISGram DAISGram::equalize(){
     DAISGram res = *this;
     Tensor occurrencies{16, 16, 3};
-    /**
-     * TO DO:
-     *
-     * 1) calcolare il numero di occorrenze per ogni valore dei pixels nel tensore @param occurrencies;
-     * 2) calcolare il rispettivo cdf nel tensore @param cdf
-     * 3) ricavare dal tensore @param cdf il minimo valore e salvarlo in @param cdf_min
-     * 4) applicare la formula presente nel link https://en.m.wikipedia.org/wiki/Histogram_equalization
-     * 5) ripetere per ogni canale
-     *
-     * LET'S GO
-     */
-    
     int rows = res.getRows();
     int cols = res.getCols();
 
