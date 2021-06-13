@@ -54,10 +54,6 @@ Tensor::~Tensor(){
     delete[] data;
 }
 
-void Tensor::init_progressive(){
-
-}
-
 float Tensor::operator()(int i, int j, int k) const{
     if((i < 0 || i >= r) || (j < 0 || j >= c) || (k < 0 || k >= d)) throw(index_out_of_bound());
     else return data[i][j][k];
@@ -202,14 +198,6 @@ Tensor & Tensor::operator=(const Tensor &other){
     return *this;
 }
 
-/**
- * Random Initialization
- *
- * Perform a random initialization of the tensor
- *
- * @param mean The mean
- * @param std  Standard deviation
- */
 void Tensor::init_random(float mean, float std){
     if(data){
 

@@ -217,7 +217,7 @@ DAISGram DAISGram::sharpen(){
 
     DAISGram res = *this;
     res.data = res.data.convolve(filter);
-    //res.data.clamp(0, 255);
+    res.data.clamp(0, 255);
     return res;
 }
 
