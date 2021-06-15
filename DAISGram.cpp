@@ -13,7 +13,7 @@ DAISGram::DAISGram(){
 }
 
 DAISGram::~DAISGram(){
-
+    
 }
 
 /**
@@ -473,7 +473,7 @@ DAISGram DAISGram::equalize(){
                     cdf = occurrencies.getCDF(res.data(i, j, k));
 
                     if(cdf != 0){
-                        res.data(i, j, k) = (int) ( ((cdf - cdf_min) / (dimension - cdf_min)) * (L - 1) );
+                        res.data(i, j, k) = round( ((cdf - cdf_min) / (dimension - cdf_min)) * (L - 1) );
                     }
                 }
             }
